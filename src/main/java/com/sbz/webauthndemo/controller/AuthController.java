@@ -31,8 +31,8 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseBody
-    public String newUserRegistration(@RequestParam String username, @RequestParam String display, HttpSession session) {
-        AppUser saveUser = registerService.newUser(username, display);
+    public String newUserRegistration(@RequestParam String username, @RequestParam String displayname, HttpSession session) {
+        AppUser saveUser = registerService.newUser(username, displayname);
         return registerService.newPublicKey(saveUser, session);
     }
 
@@ -66,7 +66,7 @@ public class AuthController {
     public String finishLogin(@RequestParam String credential, @RequestParam String username, Model model, HttpSession session) {
         AssertionResult result = loginService.finishLogin(credential, username, session);
         if (result.isSuccess()) {
-            model.addAttribute("username", username);
+            model.addAttribute("displayname", username);
             return "welcome";
         } else {
             return "index";

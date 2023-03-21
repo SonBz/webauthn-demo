@@ -54,7 +54,7 @@ public class RegisterService {
                     .user(userIdentity)
                     .build();
             PublicKeyCredentialCreationOptions registration = relyingParty.startRegistration(registrationOptions);
-            session.setAttribute(userIdentity.getDisplayName(), registration);
+            session.setAttribute(userIdentity.getName(), registration);
             try {
                 return registration.toCredentialsCreateJson();
             } catch (JsonProcessingException e) {

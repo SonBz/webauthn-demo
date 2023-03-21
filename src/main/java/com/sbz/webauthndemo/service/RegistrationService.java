@@ -31,9 +31,7 @@ public class RegistrationService implements CredentialRepository {
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        AppUser user = userRepo.findByUsername(username);
-        List<Authenticator> auth = authRepository.findAllByUser(user);
-        return auth.stream()
+        return authRepository.findAllByUserUsername(username).stream()
                 .map(credential -> PublicKeyCredentialDescriptor.builder()
                         .id(new ByteArray(credential.getCredentialId()))
                         .build())
@@ -55,8 +53,7 @@ public class RegistrationService implements CredentialRepository {
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        long id = BytesUtil.bytesToLong(userHandle.getBytes());
-        log.debug("lookup - userId: {}, credentialId: {}", id, credentialId);
+        log.debug("lookup - credentialId: {}", credentialId);
         return authRepository.findByCredentialId(credentialId.getBytes())
                 .map(credential -> RegisteredCredential.builder()
                         .credentialId(new ByteArray(credential.getCredentialId()))

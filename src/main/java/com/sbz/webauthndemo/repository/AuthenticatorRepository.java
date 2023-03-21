@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface AuthenticatorRepository extends JpaRepository<Authenticator, Long> {
     Optional<Authenticator> findByCredentialId(byte[] credentialId);
-    List<Authenticator> findAllByUser (AppUser user);
+    List<Authenticator> findAllByUserUsername (String  username);
     List<Authenticator> findAllByCredentialId(byte[] credentialId);
 }
