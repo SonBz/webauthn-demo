@@ -1,45 +1,47 @@
 package com.sbz.webauthndemo.controller;
 
-import dev.samstevens.totp.code.CodeVerifier;
+import dev.samstevens.totp.code.*;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import dev.samstevens.totp.qr.QrData;
 import dev.samstevens.totp.qr.QrDataFactory;
 import dev.samstevens.totp.qr.QrGenerator;
+import dev.samstevens.totp.qr.ZxingPngQrGenerator;
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
+import dev.samstevens.totp.time.SystemTimeProvider;
+import dev.samstevens.totp.time.TimeProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static dev.samstevens.totp.util.Utils.getDataUriForImage;
 
 @Controller
 public class MfaController {
-    private final QrDataFactory qrDataFactory;
     private final QrGenerator qrGenerator;
-    private final CodeVerifier verifier;
     private final String secret;
+    private final SecretGenerator secretGenerator;
 
-    public MfaController(SecretGenerator secretGenerator,
-                         QrDataFactory qrDataFactory,
-                         QrGenerator qrGenerator,
-                         CodeVerifier verifier) {
+    public MfaController() {
+        secretGenerator = new DefaultSecretGenerator(64);
         secret = secretGenerator.generate();
-        this.qrDataFactory = qrDataFactory;
-        this.qrGenerator = qrGenerator;
-        this.verifier = verifier;
+        qrGenerator = new ZxingPngQrGenerator();
     }
 
-
-    @GetMapping("setup")
+    @GetMapping("/mfa")
+    public String mfaPage() {
+        return "mfa";
+    }
+    @GetMapping("/mfa")
     public String setup() throws QrGenerationException {
-        QrData data = qrDataFactory.newBuilder()
+        QrData data =  new QrData.Builder()
                 .label("example@example.com")
                 .secret(secret)
                 .issuer("AppName")
+                .algorithm(HashingAlgorithm.SHA1) // More on this below
+                .digits(6)
+                .period(30)
                 .build();
 
         // Generate the QR code image data as a base64 string which
@@ -50,9 +52,13 @@ public class MfaController {
         );
     }
 
-    @GetMapping("verify/{code}")
-    public ResponseEntity<String> verify(@PathVariable String code) {
-        if (verifier.isValidCode(secret, code)) {
+    @PostMapping("/mfa/verify")
+    @ResponseBody
+    public ResponseEntity<String> verify(@RequestParam String confirm) {
+        TimeProvider timeProvider = new SystemTimeProvider();
+        CodeGenerator codeGenerator = new DefaultCodeGenerator();
+        CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
+        if (verifier.isValidCode(secret, confirm)) {
             return ResponseEntity.ok("OK");
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("INVALID CODE");

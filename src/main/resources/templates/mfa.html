@@ -1,0 +1,26 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>WebAuthn Example</title>
+    <link th:href="@{/css/tachyons.css}" rel="stylesheet" />
+</head>
+<body>
+    <div class="container-fluid">
+        <div th:replace="header :: header">...</div>
+        <div class="row">
+            <div class="box col-md-6 col-md-offset-3">
+                <div>
+                    <div>
+                        Use a Google Authenticator App
+                        (<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Play</a> or
+                        <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">Apple App Store</a>)
+                        to scan the QR Code.<p/>
+                        <b>Note</b>: The QR code will only be shown once.<br/>
+                        <img th:src="@{${qrcode}}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
