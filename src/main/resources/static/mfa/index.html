@@ -12,6 +12,7 @@
     fetch(`http://localhost:8080/api/mfa/setup`)
         .then(res => res.text())
         .then(res => document.querySelector('#qr').src = res)
+        
 </script>
 </body>
 </html>
