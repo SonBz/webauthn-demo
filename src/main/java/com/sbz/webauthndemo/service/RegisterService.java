@@ -33,17 +33,16 @@ public class RegisterService {
     private RelyingParty relyingParty;
 
     public AppUser newUser(String username, String display) {
-        AppUser user = userRepo.findByUsername(username);
-        if (user == null) {
-            UserIdentity userIdentity = UserIdentity.builder()
-                    .name(username)
-                    .displayName(display)
-                    .id(Utility.generateRandom(32))
-                    .build();
-            return userRepo.save(new AppUser(userIdentity));
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
-        }
+        userRepo.findByUsername(username)
+                .ifPresent(appUser -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists. Choose a new name.");
+                });
+        UserIdentity userIdentity = UserIdentity.builder()
+                .name(username)
+                .displayName(display)
+                .id(Utility.generateRandom(32))
+                .build();
+        return userRepo.save(new AppUser(userIdentity));
     }
 
     public String newPublicKey(AppUser appUser, HttpSession session) {
@@ -67,7 +66,7 @@ public class RegisterService {
 
     public Authenticator newAuth(String credential, String username, HttpSession session) {
         try {
-            AppUser user = userRepo.findByUsername(username);
+            AppUser user = userRepo.findByUsername(username).get();
             PublicKeyCredentialCreationOptions requestOptions = (PublicKeyCredentialCreationOptions) session.getAttribute(user.getUsername());
             if (requestOptions != null) {
                 var pkc = PublicKeyCredential.parseRegistrationResponseJson(credential);

@@ -2,6 +2,7 @@ package com.sbz.webauthndemo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sbz.webauthndemo.model.AppUser;
+import com.sbz.webauthndemo.repository.UserRepository;
 import com.sbz.webauthndemo.service.LoginService;
 import com.sbz.webauthndemo.service.RegisterService;
 import com.yubico.webauthn.AssertionRequest;
@@ -21,12 +22,14 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class AuthController {
 
-    private RegisterService registerService;
-    private LoginService loginService;
+    private final RegisterService registerService;
+    private final LoginService loginService;
+    private final UserRepository userRepository;
 
-    AuthController(RegisterService registerService, LoginService loginService) {
+    AuthController(RegisterService registerService, LoginService loginService, UserRepository userRepository) {
         this.registerService = registerService;
         this.loginService = loginService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
@@ -46,7 +49,7 @@ public class AuthController {
     @ResponseBody
     public ModelAndView finishRegisration(@RequestParam String credential, @RequestParam String username, HttpSession session) {
         registerService.newAuth(credential, username, session);
-        return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
+        return new ModelAndView("redirect:/mfa?username="+ username, HttpStatus.SEE_OTHER);
     }
 
 
@@ -62,12 +65,14 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/welcome")
+    @PostMapping("/check/username")
     public String finishLogin(@RequestParam String credential, @RequestParam String username, Model model, HttpSession session) {
         AssertionResult result = loginService.finishLogin(credential, username, session);
         if (result.isSuccess()) {
-            model.addAttribute("displayname", username);
-            return "welcome";
+            model.addAttribute("name", username);
+            userRepository.findByUsername(username)
+                    .ifPresent(appUser -> model.addAttribute("displayName", appUser.getDisplayName()));
+            return "mfa";
         } else {
             return "index";
         }
@@ -87,4 +92,6 @@ public class AuthController {
     public String loginPage() {
         return "login";
     }
+
+
 }

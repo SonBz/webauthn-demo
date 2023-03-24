@@ -4,11 +4,13 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.UserIdentity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class AppUser {
 
@@ -21,6 +23,9 @@ public class AppUser {
 
     @Column(nullable = false)
     private String displayName;
+
+    @Column
+    private String secretCode;
 
     @Lob
     @Column(nullable = false, length = 64)

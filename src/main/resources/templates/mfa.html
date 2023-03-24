@@ -7,10 +7,15 @@
 <body>
     <div class="container-fluid">
         <div th:replace="header :: header">...</div>
+        <div class="alert alert-dismissable alert-danger" th:if="${not #strings.isEmpty(error)}">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p th:text="${error}">|Error message here.|</p>
+        </div>
         <div class="row">
             <div class="box col-md-6 col-md-offset-3">
                 <div>
-                    <div>
+                    <h3 th:text="${name}"/>
+                    <div th:if="${qrcode}">
                         Use a Google Authenticator App
                         (<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Play</a> or
                         <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">Apple App Store</a>)
@@ -18,6 +23,16 @@
                         <b>Note</b>: The QR code will only be shown once.<br/>
                         <img th:src="@{${qrcode}}">
                     </div>
+
+                    <form th:action="@{/mfa/verify}" method="post" class="form-inline">
+                        <div class="form-group">
+                            <label class="sr-only" for="confirm">Name</label>
+                            <input type="text" name="code" class="form-control" id="confirm" placeholder="Authenticator Code"/>
+                            <input type="hidden" id="displayName" name="displayName" th:value="${displayName}">
+                            <input type="hidden" id="username" name="username" th:value="${name}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                    </form>
                 </div>
             </div>
         </div>
